@@ -2,6 +2,20 @@
 
 Search Elasticsearch logs from the command line.
 
+## Installing
+
+If you're using a Mac, install from the Homebrew tap:
+
+```
+$ brew tap gocardless/taps
+$ brew install logsearch
+```
+
+If you're using Linux, download the latest binary from the [releases page][releases].
+
+[releases]: https://github.com/gocardless/logsearch/releases
+
+
 ## Usage
 
 ```
