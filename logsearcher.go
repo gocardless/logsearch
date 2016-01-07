@@ -5,10 +5,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mattn/go-isatty"
 )
+
+const beginHighlight = "@BEGIN-LOGSEARCH-HIGHLIGHT@"
+const endHighlight = "@END-LOGSEARCH-HIGHLIGHT@"
+const colorHighlight = "\033[1;7;32m"
+const colorReset = "\033[0m"
 
 type LogSearcher struct {
 	Client     *EsClient
@@ -58,16 +64,24 @@ func (ls *LogSearcher) printResults(resp *EsResponse) {
 			continue
 		}
 
-		fullMsg, err := json.Marshal(hit.Source)
+		if tty {
+			highlightSourceInline(hit)
+		}
+
+		jsonMsgBytes, err := json.Marshal(hit.Source)
 		if err != nil {
 			log.Fatal(err)
 		}
+		jsonMsg := string(jsonMsgBytes)
 
 		if tty {
+			jsonMsg = strings.Replace(jsonMsg, beginHighlight, colorHighlight, -1)
+			jsonMsg = strings.Replace(jsonMsg, endHighlight, colorReset, -1)
+
 			fmt.Printf("\033[34m\033[1m%s\033[0m -- ", hit.Source["@timestamp"])
-			fmt.Printf("%s\n\n", string(fullMsg))
+			fmt.Printf("%s\n\n", jsonMsg)
 		} else {
-			fmt.Printf("%s -- %s\n", hit.Source["@timestamp"], string(fullMsg))
+			fmt.Printf("%s -- %s\n", hit.Source["@timestamp"], jsonMsg)
 		}
 	}
 }
@@ -93,4 +107,49 @@ func (ls *LogSearcher) updateStartTime(resp *EsResponse) {
 	if newStartTime.After(ls.startTime) {
 		ls.startTime = newStartTime
 	}
+}
+
+func highlightSourceInline(hit EsResponseHit) {
+	for fullKey, highlights := range hit.Hightlight {
+		if strings.HasSuffix(fullKey, ".raw") {
+			continue
+		}
+
+		// Deal with fullKeys like headers.accept, etc.
+		keyParts := strings.Split(fullKey, ".")
+		key := keyParts[0]
+		source := hit.Source
+		if len(keyParts) > 1 {
+			keyParts = keyParts[1:]
+			for _, keyPart := range keyParts {
+				source = source[key].(map[string]interface{})
+				key = keyPart
+			}
+		}
+		if _, ok := source[key]; ok {
+			for _, highlight := range highlights {
+				source[key] = highlightReplace(source[key], highlight)
+			}
+		}
+	}
+}
+
+func highlightReplace(source interface{}, highlight string) interface{} {
+	switch source := source.(type) {
+	case []interface{}:
+		for i, el := range source {
+			source[i] = highlightReplace(el, highlight)
+		}
+		return source
+	case map[string]interface{}:
+		for key, val := range source {
+			source[key] = highlightReplace(val, highlight)
+		}
+		return source
+	case string:
+		needle := strings.Replace(highlight, beginHighlight, "", -1)
+		needle = strings.Replace(needle, endHighlight, "", -1)
+		return strings.Replace(source, needle, highlight, -1)
+	}
+	return source
 }

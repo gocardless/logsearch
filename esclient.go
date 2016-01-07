@@ -10,9 +10,10 @@ import (
 )
 
 type EsResponseHit struct {
-	Id     string                 `json:"_id"`
-	Score  float64                `json:"_score"`
-	Source map[string]interface{} `json:"_source"`
+	Id         string                 `json:"_id"`
+	Score      float64                `json:"_score"`
+	Source     map[string]interface{} `json:"_source"`
+	Hightlight map[string][]string    `json:"highlight"`
 }
 
 type EsResponseHits struct {
@@ -110,9 +111,22 @@ func buildQuery(queryOpts EsQueryOptions) map[string]interface{} {
 		},
 	}
 
+	highlight := map[string]interface{}{
+		"pre_tags":  []string{"@BEGIN-LOGSEARCH-HIGHLIGHT@"},
+		"post_tags": []string{"@END-LOGSEARCH-HIGHLIGHT@"},
+		"fields": map[string]interface{}{
+			"*": map[string]interface{}{
+				"force_source":        "true",
+				"fragment_size":       32000,
+				"number_of_fragments": 100,
+			},
+		},
+	}
+
 	return map[string]interface{}{
-		"size":  queryOpts.NumResults,
-		"sort":  sort,
-		"query": query,
+		"size":      queryOpts.NumResults,
+		"sort":      sort,
+		"query":     query,
+		"highlight": highlight,
 	}
 }
