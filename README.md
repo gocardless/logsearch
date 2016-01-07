@@ -25,8 +25,10 @@ Usage:
 
 Application Options:
   -e, --elasticsearch-url= URL for the Elasticsearch instance. Alternatively, use ELASTICSEARCH_URL environment variable.
+  -f, --follow             Show new data as it becomes available, like tail -f
   -n, --num-results=       Max number of results to return (default: 100)
   -p, --period=            Search time period, e.g. '3 hours', or '1 day' (default: 1 day)
+  -V, --version            Show logsearch version
 
 Help Options:
   -h, --help               Show this help message
