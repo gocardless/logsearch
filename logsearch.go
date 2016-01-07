@@ -11,7 +11,7 @@ import (
 	"github.com/mattn/go-isatty"
 )
 
-const version = "0.1"
+var version string
 
 var opts struct {
 	ElasticsearchUrl string `short:"e" long:"elasticsearch-url" description:"URL for the Elasticsearch instance. Alternatively, use ELASTICSEARCH_URL environment variable."`
