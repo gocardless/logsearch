@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -68,7 +67,7 @@ func (ls *LogSearcher) printResults(resp *EsResponse) {
 			highlightSourceInline(hit)
 		}
 
-		jsonMsgBytes, err := json.Marshal(hit.Source)
+		jsonMsgBytes, err := JSONMarshal(hit.Source, true)
 		if err != nil {
 			log.Fatal(err)
 		}
