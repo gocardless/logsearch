@@ -1,4 +1,4 @@
-version = 0.2
+version = 0.3
 
 build:
 	go build -ldflags "-X main.version $(version)" .
