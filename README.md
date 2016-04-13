@@ -29,6 +29,7 @@ Application Options:
   -n, --num-results=       Max number of results to return (default: 100)
   -p, --period=            Search time period, e.g. '3 hours', or '1 day' (default: 1 day)
   -V, --version            Show logsearch version
+  -m, --message-only       Show message only
 
 Help Options:
   -h, --help               Show this help message
