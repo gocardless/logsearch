@@ -16,13 +16,14 @@ const colorHighlight = "\033[1;7;32m"
 const colorReset = "\033[0m"
 
 type LogSearcher struct {
-	Client     *EsClient
-	Query      string
-	Period     time.Duration
-	NumResults int
-	Follow     bool
-	idsSeen    map[string]time.Time
-	startTime  time.Time
+	Client      *EsClient
+	Query       string
+	Period      time.Duration
+	NumResults  int
+	Follow      bool
+	MessageOnly bool
+	idsSeen     map[string]time.Time
+	startTime   time.Time
 }
 
 func (ls *LogSearcher) Start() {
@@ -78,9 +79,17 @@ func (ls *LogSearcher) printResults(resp *EsResponse) {
 			jsonMsg = strings.Replace(jsonMsg, endHighlight, colorReset, -1)
 
 			fmt.Printf("\033[34m\033[1m%s\033[0m -- ", hit.Source["@timestamp"])
-			fmt.Printf("%s\n\n", jsonMsg)
+			if ls.MessageOnly {
+				fmt.Printf("%s\n", hit.Source["message"])
+			} else {
+				fmt.Printf("%s\n\n", jsonMsg)
+			}
 		} else {
-			fmt.Printf("%s -- %s\n", hit.Source["@timestamp"], jsonMsg)
+			if ls.MessageOnly {
+				fmt.Printf("%s -- %s\n", hit.Source["@timestamp"], hit.Source["message"])
+			} else {
+				fmt.Printf("%s -- %s\n", hit.Source["@timestamp"], jsonMsg)
+			}
 		}
 	}
 }

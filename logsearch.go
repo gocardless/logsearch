@@ -15,6 +15,7 @@ var opts struct {
 	NumResults       int    `short:"n" long:"num-results" description:"Max number of results to return" default:"100"`
 	Period           string `short:"p" long:"period" description:"Search time period, e.g. '3 hours', or '1 day'" default:"1 day"`
 	Version          bool   `short:"V" long:"version" description:"Show logsearch version"`
+	MessageOnly      bool   `short:"m" long:"message-only" description:"Show message only"`
 }
 
 func main() {
@@ -53,11 +54,12 @@ func main() {
 	client := &EsClient{EsUrl: esUrl}
 
 	searcher := LogSearcher{
-		Client:     client,
-		Query:      args[1],
-		Period:     searchPeriod,
-		NumResults: opts.NumResults,
-		Follow:     opts.Follow,
+		Client:      client,
+		Query:       args[1],
+		Period:      searchPeriod,
+		NumResults:  opts.NumResults,
+		Follow:      opts.Follow,
+		MessageOnly: opts.MessageOnly,
 	}
 	searcher.Start()
 }
