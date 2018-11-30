@@ -64,6 +64,8 @@ func (c *EsClient) Search(queryOpts EsQueryOptions) (*EsResponse, error) {
 	}
 	client := http.Client{Transport: &transport}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -93,18 +95,21 @@ func buildQuery(queryOpts EsQueryOptions) map[string]interface{} {
 	}
 
 	query := map[string]interface{}{
-		"filtered": map[string]interface{}{
-			"query": map[string]map[string]interface{}{
-				"query_string": {
-					"query":            string(queryOpts.Query),
-					"analyze_wildcard": string("true"),
+		"bool": map[string]interface{}{
+			"must": []map[string]interface{}{
+				map[string]interface{}{
+					"query_string": map[string]interface{}{
+						"query":            string(queryOpts.Query),
+						"analyze_wildcard": bool(true),
+					},
 				},
-			},
-			"filter": map[string]map[string]map[string]interface{}{
-				"range": {
-					"@timestamp": {
-						"gte": queryOpts.StartTime,
-						"lte": queryOpts.EndTime,
+				map[string]interface{}{
+					"range": map[string]interface{}{
+						"@timestamp": map[string]interface{}{
+							"gte":    queryOpts.StartTime.UnixNano() / int64(time.Millisecond),
+							"lte":    queryOpts.EndTime.UnixNano() / int64(time.Millisecond),
+							"format": "epoch_millis",
+						},
 					},
 				},
 			},
